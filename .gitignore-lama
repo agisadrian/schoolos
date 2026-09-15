@@ -25,11 +25,3 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-
-# --- Tambahan: jangan ikut ke GitHub ---
-/database/*.sqlite
-/database/*.sqlite-journal
-/backup-sebelum-perbaikan
-/storage/app/public/materials
-/storage/app/public/assignments
-/storage/app/public/submissions
