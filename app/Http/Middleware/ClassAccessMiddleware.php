@@ -27,13 +27,22 @@ class ClassAccessMiddleware
         }
 
         // User biasa hanya boleh mengakses kelas
-        // jika dirinya terdaftar sebagai anggota kelas.
-        $isMember = $class->members()
+        // jika dirinya terdaftar sebagai anggota kelas
+        // DAN keanggotaannya sudah disetujui (approved).
+        $membership = $class->members()
             ->where('user_id', $user->id)
-            ->exists();
+            ->first();
 
-        if (!$isMember) {
+        if (!$membership) {
             abort(403, 'Anda tidak memiliki akses ke kelas ini.');
+        }
+
+        if ($membership->status === 'pending') {
+            abort(
+                403,
+                'Permintaan gabung kelas kamu masih menunggu ' .
+                'persetujuan admin/guru.'
+            );
         }
 
         return $next($request);

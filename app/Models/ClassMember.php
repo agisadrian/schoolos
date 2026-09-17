@@ -14,7 +14,18 @@ class ClassMember extends Model
         'class_id',
         'user_id',
         'role',
+        'status',
     ];
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
 
     public function schoolClass(): BelongsTo
     {

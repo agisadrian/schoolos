@@ -216,11 +216,176 @@
                             @endif
 
 
+                            @if(
+                                Auth::user()->role === 'admin' ||
+                                Auth::user()->role === 'teacher'
+                            )
+
+                                <div class="d-flex gap-2 mt-3">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editSubjectModal{{ $subject->id }}"
+                                    >
+                                        <i class="bi bi-pencil-square"></i>
+                                        Edit
+                                    </button>
+
+                                    <form
+                                        action="{{ route(
+                                            'subjects.destroy',
+                                            [$class, $subject]
+                                        ) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Hapus mata pelajaran {{ $subject->name }}? Materi/tugas/nilai yang terkait mata pelajaran ini juga bisa kehapus.')"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                        >
+                                            <i class="bi bi-trash"></i>
+                                            Hapus
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            @endif
+
+
                         </div>
 
                     </div>
 
                 </div>
+
+
+                @if(
+                    Auth::user()->role === 'admin' ||
+                    Auth::user()->role === 'teacher'
+                )
+
+                    <!-- EDIT SUBJECT MODAL -->
+
+                    <div
+                        class="modal fade"
+                        id="editSubjectModal{{ $subject->id }}"
+                        tabindex="-1"
+                        aria-hidden="true"
+                    >
+
+                        <div class="modal-dialog modal-dialog-centered">
+
+                            <div class="modal-content border-0 rounded-4">
+
+                                <div class="modal-header">
+
+                                    <h5 class="modal-title fw-bold">
+                                        Edit Mata Pelajaran
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    ></button>
+
+                                </div>
+
+                                <form
+                                    action="{{ route(
+                                        'subjects.update',
+                                        [$class, $subject]
+                                    ) }}"
+                                    method="POST"
+                                >
+
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="modal-body">
+
+                                        <div class="mb-3">
+
+                                            <label class="form-label fw-semibold">
+                                                Nama Mata Pelajaran
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="name"
+                                                value="{{ $subject->name }}"
+                                                required
+                                            >
+
+                                        </div>
+
+                                        <div class="mb-3">
+
+                                            <label class="form-label fw-semibold">
+                                                Kode Mata Pelajaran
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="code"
+                                                value="{{ $subject->code }}"
+                                            >
+
+                                        </div>
+
+                                        <div class="mb-3">
+
+                                            <label class="form-label fw-semibold">
+                                                Deskripsi
+                                            </label>
+
+                                            <textarea
+                                                class="form-control"
+                                                name="description"
+                                                rows="4"
+                                            >{{ $subject->description }}</textarea>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-light"
+                                            data-bs-dismiss="modal"
+                                        >
+                                            Batal
+                                        </button>
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary"
+                                        >
+                                            Simpan Perubahan
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                @endif
 
             @endforeach
 

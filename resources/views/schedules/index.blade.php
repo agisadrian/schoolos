@@ -340,6 +340,45 @@
 
                                         @endif
 
+
+                                        <!-- ACTIONS -->
+
+                                        @if(
+                                            Auth::user()->role === 'admin' ||
+                                            Auth::user()->role === 'teacher'
+                                        )
+
+                                            <div class="d-flex gap-2 mt-3 pt-3 border-top">
+
+                                                <a
+                                                    href="{{ route('schedules.edit', [$class, $schedule]) }}"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                >
+                                                    <i class="bi bi-pencil-square"></i>
+                                                    Edit
+                                                </a>
+
+                                                <form
+                                                    action="{{ route('schedules.destroy', [$class, $schedule]) }}"
+                                                    method="POST"
+                                                    onsubmit="return confirm('Hapus jadwal ini?')"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                    >
+                                                        <i class="bi bi-trash"></i>
+                                                        Hapus
+                                                    </button>
+                                                </form>
+
+                                            </div>
+
+                                        @endif
+
                                     </div>
 
                                 </div>

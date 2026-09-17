@@ -66,6 +66,11 @@ class ClassController extends Controller
         */
 
         $classes = $query
+            ->with([
+                'members' => function ($memberQuery) use ($user) {
+                    $memberQuery->where('user_id', $user->id);
+                },
+            ])
             ->withCount([
                 'members',
                 'subjects',
@@ -166,11 +171,22 @@ class ClassController extends Controller
 
         $user = Auth::user();
 
-        $alreadyMember = $class->members()
+        $existingMembership = $class->members()
             ->where('user_id', $user->id)
-            ->exists();
+            ->first();
 
-        if ($alreadyMember) {
+        if ($existingMembership) {
+            if ($existingMembership->status === 'pending') {
+                return redirect()
+                    ->route('classes.index')
+                    ->with(
+                        'success',
+                        'Permintaan gabung kamu ke kelas ' .
+                        $class->name .
+                        ' masih menunggu persetujuan admin/guru.'
+                    );
+            }
+
             return redirect()
                 ->route('classes.show', $class)
                 ->with(
@@ -180,18 +196,45 @@ class ClassController extends Controller
         }
 
 
+        // Satu akun siswa hanya boleh terdaftar
+        // (atau sedang mengajukan) di 1 kelas saja.
+        // Guru dan admin boleh berada di banyak kelas.
+        if ($user->role === 'student') {
+            $hasOtherClass = ClassMember::where(
+                'user_id',
+                $user->id
+            )
+                ->where('class_id', '!=', $class->id)
+                ->exists();
+
+            if ($hasOtherClass) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'code' =>
+                            'Akun siswa hanya boleh terdaftar di ' .
+                            '1 kelas. Kamu sudah tergabung atau ' .
+                            'sedang mengajukan di kelas lain.',
+                    ]);
+            }
+        }
+
+
         ClassMember::create([
             'class_id' => $class->id,
             'user_id' => $user->id,
             'role' => $user->role,
+            'status' => 'pending',
         ]);
 
 
         return redirect()
-            ->route('classes.show', $class)
+            ->route('classes.index')
             ->with(
                 'success',
-                'Berhasil bergabung ke kelas ' . $class->name . '.'
+                'Permintaan gabung kelas ' . $class->name .
+                ' berhasil dikirim. Menunggu persetujuan ' .
+                'admin/guru sebelum kamu bisa mengakses kelas ini.'
             );
     }
 }

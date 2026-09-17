@@ -42,6 +42,142 @@
 </div>
 
 
+<!-- PENDING JOIN REQUESTS -->
+
+@if(in_array(Auth::user()->role, ['admin', 'teacher']))
+
+    @if($pendingMembers->count() > 0)
+
+        <div class="card border-warning mb-4">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+
+                    <i class="bi bi-hourglass-split text-warning fs-5"></i>
+
+                    <h5 class="fw-bold mb-0">
+                        Menunggu Persetujuan
+                    </h5>
+
+                    <span class="badge rounded-pill bg-warning text-dark">
+                        {{ $pendingMembers->count() }}
+                    </span>
+
+                </div>
+
+                <p class="text-muted small mb-3">
+                    Permintaan gabung kelas berikut perlu disetujui
+                    sebelum yang bersangkutan bisa mengakses kelas ini.
+                </p>
+
+                <div class="table-responsive">
+
+                    <table class="table align-middle mb-0">
+
+                        <tbody>
+
+                            @foreach($pendingMembers as $pending)
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="d-flex align-items-center gap-3">
+
+                                            <div
+                                                class="rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 42px; height: 42px; background: #fff7ed; color: #b45309; font-weight: 700; flex-shrink: 0;"
+                                            >
+                                                {{
+                                                    strtoupper(
+                                                        substr(
+                                                            $pending->user->name,
+                                                            0,
+                                                            1
+                                                        )
+                                                    )
+                                                }}
+                                            </div>
+
+                                            <div>
+
+                                                <div class="fw-semibold">
+                                                    {{ $pending->user->name }}
+                                                </div>
+
+                                                <div class="text-muted small">
+                                                    {{ $pending->user->email }}
+                                                    ·
+                                                    ingin gabung sebagai
+                                                    {{ $pending->role === 'student' ? 'Siswa' : ($pending->role === 'teacher' ? 'Guru' : 'Admin') }}
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="text-end" style="width: 260px;">
+
+                                        <div class="d-flex justify-content-end gap-2">
+
+                                            <form
+                                                action="{{ route('members.approve', [$class, $pending]) }}"
+                                                method="POST"
+                                            >
+                                                @csrf
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                >
+                                                    <i class="bi bi-check-lg"></i>
+                                                    Setujui
+                                                </button>
+                                            </form>
+
+                                            <form
+                                                action="{{ route('members.reject', [$class, $pending]) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('Tolak permintaan gabung ini?')"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                >
+                                                    <i class="bi bi-x-lg"></i>
+                                                    Tolak
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
+
+@endif
+
+
 <!-- STATISTICS -->
 
 <div class="row g-3 mb-4">

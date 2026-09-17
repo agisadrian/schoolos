@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\SchoolClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AssignmentController extends Controller
 {
@@ -336,5 +337,143 @@ class AssignmentController extends Controller
                 'submission'
             )
         );
+    }
+
+
+    public function edit(
+        SchoolClass $class,
+        Assignment $assignment
+    ) {
+        if ($assignment->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $subjects = $class->subjects()
+            ->orderBy('name')
+            ->get();
+
+        return view(
+            'assignments.edit',
+            compact(
+                'class',
+                'assignment',
+                'subjects'
+            )
+        );
+    }
+
+
+    public function update(
+        Request $request,
+        SchoolClass $class,
+        Assignment $assignment
+    ) {
+        if ($assignment->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'subject_id' => [
+                'required',
+                'integer',
+                'exists:subjects,id',
+            ],
+
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'nullable',
+                'string',
+                'max:10000',
+            ],
+
+            'deadline' => [
+                'required',
+                'date',
+            ],
+
+            'file' => [
+                'nullable',
+                'file',
+                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip',
+                'max:10240',
+            ],
+        ]);
+
+        $subjectExists = $class->subjects()
+            ->where('id', $validated['subject_id'])
+            ->exists();
+
+        if (!$subjectExists) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'subject_id' =>
+                        'Mata pelajaran tidak berasal dari kelas ini.',
+                ]);
+        }
+
+        $updateData = [
+            'subject_id' => $validated['subject_id'],
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'deadline' => $validated['deadline'],
+        ];
+
+        if ($request->hasFile('file')) {
+            if ($assignment->file_path) {
+                Storage::disk('public')->delete(
+                    $assignment->file_path
+                );
+            }
+
+            $file = $request->file('file');
+
+            $updateData['file_path'] = $file->store(
+                'assignments',
+                'public'
+            );
+            $updateData['file_name'] = $file->getClientOriginalName();
+            $updateData['file_type'] = $file->getClientMimeType();
+            $updateData['file_size'] = $file->getSize();
+        }
+
+        $assignment->update($updateData);
+
+        return redirect()
+            ->route('assignments.show', [$class, $assignment])
+            ->with(
+                'success',
+                'Tugas berhasil diperbarui.'
+            );
+    }
+
+
+    public function destroy(
+        SchoolClass $class,
+        Assignment $assignment
+    ) {
+        if ($assignment->class_id !== $class->id) {
+            abort(404);
+        }
+
+        if ($assignment->file_path) {
+            Storage::disk('public')->delete(
+                $assignment->file_path
+            );
+        }
+
+        $assignment->delete();
+
+        return redirect()
+            ->route('assignments.index', $class)
+            ->with(
+                'success',
+                'Tugas berhasil dihapus.'
+            );
     }
 }

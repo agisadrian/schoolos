@@ -240,20 +240,54 @@
                                     @endif
 
 
-                                    <a
-                                        href="{{ route(
-                                            'announcements.show',
-                                            [
-                                                $class,
-                                                $announcement
-                                            ]
-                                        ) }}"
-                                        class="btn
-                                               btn-outline-primary
-                                               btn-sm"
-                                    >
-                                        Baca Pengumuman
-                                    </a>
+                                    <div class="d-flex flex-wrap gap-2">
+
+                                        <a
+                                            href="{{ route(
+                                                'announcements.show',
+                                                [
+                                                    $class,
+                                                    $announcement
+                                                ]
+                                            ) }}"
+                                            class="btn
+                                                   btn-outline-primary
+                                                   btn-sm"
+                                        >
+                                            Baca Pengumuman
+                                        </a>
+
+                                        @if(
+                                            Auth::user()->role === 'admin' ||
+                                            Auth::user()->role === 'teacher'
+                                        )
+
+                                            <a
+                                                href="{{ route('announcements.edit', [$class, $announcement]) }}"
+                                                class="btn btn-outline-secondary btn-sm"
+                                            >
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form
+                                                action="{{ route('announcements.destroy', [$class, $announcement]) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('Hapus pengumuman ini?')"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                >
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+
+                                        @endif
+
+                                    </div>
 
                                 </div>
 

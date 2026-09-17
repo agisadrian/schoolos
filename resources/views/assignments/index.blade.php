@@ -431,6 +431,37 @@
 
                             @endif
 
+
+                            @if(
+                                Auth::user()->role === 'admin' ||
+                                Auth::user()->role === 'teacher'
+                            )
+
+                                <a
+                                    href="{{ route('assignments.edit', [$class, $assignment]) }}"
+                                    class="btn btn-outline-secondary"
+                                >
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                <form
+                                    action="{{ route('assignments.destroy', [$class, $assignment]) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Hapus tugas ini? Semua submission siswa untuk tugas ini juga akan ikut terhapus.')"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-outline-danger"
+                                    >
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+
+                            @endif
+
                         </div>
 
                     </div>

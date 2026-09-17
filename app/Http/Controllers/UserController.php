@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassMember;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -194,6 +195,10 @@ class UserController extends Controller
         ]);
 
 
+        $roleChanged =
+            $user->role !== $validated['role'];
+
+
         $user->name =
             $validated['name'];
 
@@ -219,6 +224,19 @@ class UserController extends Controller
 
 
         $user->save();
+
+
+        // Role di setiap keanggotaan kelas harus selalu
+        // sinkron dengan role global user (ini invarian
+        // yang dijaga sejak user ditambahkan ke kelas).
+        // Kalau role globalnya berubah, ikut update semua
+        // baris keanggotaan kelasnya juga.
+        if ($roleChanged) {
+            ClassMember::where('user_id', $user->id)
+                ->update([
+                    'role' => $validated['role'],
+                ]);
+        }
 
 
         return redirect()

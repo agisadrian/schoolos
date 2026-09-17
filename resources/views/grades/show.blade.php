@@ -18,6 +18,52 @@
 </div>
 
 
+@if(session('success'))
+
+    <div class="alert alert-success border-0 shadow-sm">
+        {{ session('success') }}
+    </div>
+
+@endif
+
+
+@if(
+    Auth::user()->role === 'admin' ||
+    Auth::user()->role === 'teacher'
+)
+
+    <div class="d-flex justify-content-end gap-2 mb-3">
+
+        <a
+            href="{{ route('grades.edit', [$class, $grade]) }}"
+            class="btn btn-outline-secondary btn-sm"
+        >
+            <i class="bi bi-pencil-square"></i>
+            Edit
+        </a>
+
+        <form
+            action="{{ route('grades.destroy', [$class, $grade]) }}"
+            method="POST"
+            onsubmit="return confirm('Hapus nilai ini?')"
+        >
+            @csrf
+            @method('DELETE')
+
+            <button
+                type="submit"
+                class="btn btn-outline-danger btn-sm"
+            >
+                <i class="bi bi-trash"></i>
+                Hapus
+            </button>
+        </form>
+
+    </div>
+
+@endif
+
+
 @php
     $percentage = $grade->max_score > 0
         ? ($grade->score / $grade->max_score) * 100

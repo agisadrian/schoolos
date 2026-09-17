@@ -235,13 +235,34 @@
                         </div>
 
 
-                        <a
-                            href="{{ route('classes.show', $class) }}"
-                            class="btn btn-primary w-100"
-                        >
-                            Lihat Kelas
-                            <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
+                        @php
+                            $myMembership = $class->members->first();
+                            $isPending = $myMembership
+                                && $myMembership->status === 'pending';
+                        @endphp
+
+                        @if($isPending)
+
+                            <button
+                                type="button"
+                                class="btn btn-warning w-100"
+                                disabled
+                            >
+                                <i class="bi bi-hourglass-split me-1"></i>
+                                Menunggu Persetujuan
+                            </button>
+
+                        @else
+
+                            <a
+                                href="{{ route('classes.show', $class) }}"
+                                class="btn btn-primary w-100"
+                            >
+                                Lihat Kelas
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+
+                        @endif
 
                     </div>
 

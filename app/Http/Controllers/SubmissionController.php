@@ -279,6 +279,7 @@ class SubmissionController extends Controller
         */
 
         $students = $class->members()
+            ->approved()
             ->with('user')
             ->where(
                 'role',

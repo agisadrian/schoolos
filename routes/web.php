@@ -33,7 +33,9 @@ Route::get(
 Route::post(
     '/register',
     [AuthController::class, 'register']
-)->name('register.process');
+)
+    ->middleware('throttle:5,1')
+    ->name('register.process');
 
 Route::post(
     '/logout',
@@ -41,6 +43,30 @@ Route::post(
 )
     ->middleware('auth')
     ->name('logout');
+
+Route::get(
+    '/forgot-password',
+    [AuthController::class, 'showForgotPassword']
+)->name('password.request');
+
+Route::post(
+    '/forgot-password',
+    [AuthController::class, 'sendResetLink']
+)
+    ->middleware('throttle:5,1')
+    ->name('password.email');
+
+Route::get(
+    '/reset-password/{token}',
+    [AuthController::class, 'showResetPassword']
+)->name('password.reset');
+
+Route::post(
+    '/reset-password',
+    [AuthController::class, 'resetPassword']
+)
+    ->middleware('throttle:5,1')
+    ->name('password.update');
 
 Route::middleware('auth')->group(function () {
 
@@ -159,6 +185,20 @@ Route::middleware('auth')->group(function () {
             ->middleware('role:admin')
             ->name('members.store');
 
+        Route::post(
+            '/classes/{class}/members/{member}/approve',
+            [ClassMemberController::class, 'approve']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('members.approve');
+
+        Route::delete(
+            '/classes/{class}/members/{member}/reject',
+            [ClassMemberController::class, 'reject']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('members.reject');
+
         Route::delete(
             '/classes/{class}/members/{member}',
             [ClassMemberController::class, 'destroy']
@@ -184,6 +224,20 @@ Route::middleware('auth')->group(function () {
         )
             ->middleware('role:admin,teacher')
             ->name('subjects.store');
+
+        Route::put(
+            '/classes/{class}/subjects/{subject}',
+            [SubjectController::class, 'update']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('subjects.update');
+
+        Route::delete(
+            '/classes/{class}/subjects/{subject}',
+            [SubjectController::class, 'destroy']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('subjects.destroy');
 
 
         /*
@@ -216,6 +270,27 @@ Route::middleware('auth')->group(function () {
             [MaterialController::class, 'show']
         )->name('materials.show');
 
+        Route::get(
+            '/classes/{class}/materials/{material}/edit',
+            [MaterialController::class, 'edit']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('materials.edit');
+
+        Route::put(
+            '/classes/{class}/materials/{material}',
+            [MaterialController::class, 'update']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('materials.update');
+
+        Route::delete(
+            '/classes/{class}/materials/{material}',
+            [MaterialController::class, 'destroy']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('materials.destroy');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -246,6 +321,27 @@ Route::middleware('auth')->group(function () {
             '/classes/{class}/assignments/{assignment}',
             [AssignmentController::class, 'show']
         )->name('assignments.show');
+
+        Route::get(
+            '/classes/{class}/assignments/{assignment}/edit',
+            [AssignmentController::class, 'edit']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('assignments.edit');
+
+        Route::put(
+            '/classes/{class}/assignments/{assignment}',
+            [AssignmentController::class, 'update']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('assignments.update');
+
+        Route::delete(
+            '/classes/{class}/assignments/{assignment}',
+            [AssignmentController::class, 'destroy']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('assignments.destroy');
 
 
         /*
@@ -306,6 +402,27 @@ Route::middleware('auth')->group(function () {
             ->middleware('role:admin,teacher')
             ->name('schedules.store');
 
+        Route::get(
+            '/classes/{class}/schedules/{schedule}/edit',
+            [ScheduleController::class, 'edit']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('schedules.edit');
+
+        Route::put(
+            '/classes/{class}/schedules/{schedule}',
+            [ScheduleController::class, 'update']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('schedules.update');
+
+        Route::delete(
+            '/classes/{class}/schedules/{schedule}',
+            [ScheduleController::class, 'destroy']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('schedules.destroy');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -337,6 +454,27 @@ Route::middleware('auth')->group(function () {
             [AnnouncementController::class, 'show']
         )->name('announcements.show');
 
+        Route::get(
+            '/classes/{class}/announcements/{announcement}/edit',
+            [AnnouncementController::class, 'edit']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('announcements.edit');
+
+        Route::put(
+            '/classes/{class}/announcements/{announcement}',
+            [AnnouncementController::class, 'update']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('announcements.update');
+
+        Route::delete(
+            '/classes/{class}/announcements/{announcement}',
+            [AnnouncementController::class, 'destroy']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('announcements.destroy');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -367,6 +505,27 @@ Route::middleware('auth')->group(function () {
             '/classes/{class}/grades/{grade}',
             [GradeController::class, 'show']
         )->name('grades.show');
+
+        Route::get(
+            '/classes/{class}/grades/{grade}/edit',
+            [GradeController::class, 'edit']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('grades.edit');
+
+        Route::put(
+            '/classes/{class}/grades/{grade}',
+            [GradeController::class, 'update']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('grades.update');
+
+        Route::delete(
+            '/classes/{class}/grades/{grade}',
+            [GradeController::class, 'destroy']
+        )
+            ->middleware('role:admin,teacher')
+            ->name('grades.destroy');
 
 
         /*

@@ -225,6 +225,7 @@ class GradeController extends Controller
 
         $students = $class
             ->members()
+            ->approved()
             ->with('user')
             ->where(
                 'role',
@@ -453,5 +454,132 @@ class GradeController extends Controller
                 'grade'
             )
         );
+    }
+
+    public function edit(
+        SchoolClass $class,
+        Grade $grade
+    ) {
+        if ($grade->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $subjects = $class
+            ->subjects()
+            ->orderBy('name')
+            ->get();
+
+        $grade->load('student');
+
+        return view(
+            'grades.edit',
+            compact(
+                'class',
+                'grade',
+                'subjects'
+            )
+        );
+    }
+
+    public function update(
+        Request $request,
+        SchoolClass $class,
+        Grade $grade
+    ) {
+        if ($grade->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'subject_id' => [
+                'required',
+                'integer',
+                Rule::exists('subjects', 'id')
+                    ->where('class_id', $class->id),
+            ],
+
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'score' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+
+            'max_score' => [
+                'required',
+                'numeric',
+                'gt:0',
+            ],
+
+            'notes' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+        ]);
+
+        if ($validated['score'] > $validated['max_score']) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'score' =>
+                        'Nilai tidak boleh melebihi nilai maksimal.',
+                ]);
+        }
+
+        $duplicate = Grade::where('class_id', $class->id)
+            ->where('subject_id', $validated['subject_id'])
+            ->where('student_id', $grade->student_id)
+            ->where('title', $validated['title'])
+            ->where('id', '!=', $grade->id)
+            ->exists();
+
+        if ($duplicate) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'title' =>
+                        'Nilai dengan judul tersebut sudah ada ' .
+                        'untuk siswa ini.',
+                ]);
+        }
+
+        $grade->update([
+            'subject_id' => $validated['subject_id'],
+            'title' => $validated['title'],
+            'score' => $validated['score'],
+            'max_score' => $validated['max_score'],
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('grades.show', [$class, $grade])
+            ->with(
+                'success',
+                'Nilai berhasil diperbarui.'
+            );
+    }
+
+    public function destroy(
+        SchoolClass $class,
+        Grade $grade
+    ) {
+        if ($grade->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $grade->delete();
+
+        return redirect()
+            ->route('grades.index', $class)
+            ->with(
+                'success',
+                'Nilai berhasil dihapus.'
+            );
     }
 }

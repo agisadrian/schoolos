@@ -32,11 +32,29 @@ class ScheduleController extends Controller
             ->orderBy('start_time')
             ->get();
 
+        $subjects = $class->subjects()
+            ->orderBy('name')
+            ->get();
+
+        $teachers = User::whereHas(
+            'classMembers',
+            function ($query) use ($class) {
+                $query->where('class_id', $class->id)
+                    ->where('role', 'teacher')
+                    ->where('status', 'approved');
+            }
+        )
+            ->where('role', 'teacher')
+            ->orderBy('name')
+            ->get();
+
         return view(
             'schedules.index',
             compact(
                 'class',
-                'schedules'
+                'schedules',
+                'subjects',
+                'teachers'
             )
         );
     }
@@ -57,6 +75,10 @@ class ScheduleController extends Controller
                     ->where(
                         'role',
                         'teacher'
+                    )
+                    ->where(
+                        'status',
+                        'approved'
                     );
             }
         )
@@ -108,6 +130,10 @@ class ScheduleController extends Controller
                     ->where(
                         'role',
                         'teacher'
+                    )
+                    ->where(
+                        'status',
+                        'approved'
                     ),
             ],
 
@@ -159,6 +185,132 @@ class ScheduleController extends Controller
             ->with(
                 'success',
                 'Jadwal berhasil ditambahkan.'
+            );
+    }
+
+    public function edit(
+        SchoolClass $class,
+        Schedule $schedule
+    ) {
+        if ($schedule->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $subjects = $class->subjects()
+            ->orderBy('name')
+            ->get();
+
+        $teachers = User::whereHas(
+            'classMembers',
+            function ($query) use ($class) {
+                $query->where('class_id', $class->id)
+                    ->where('role', 'teacher')
+                    ->where('status', 'approved');
+            }
+        )
+            ->where('role', 'teacher')
+            ->orderBy('name')
+            ->get();
+
+        return view(
+            'schedules.edit',
+            compact(
+                'class',
+                'schedule',
+                'subjects',
+                'teachers'
+            )
+        );
+    }
+
+    public function update(
+        Request $request,
+        SchoolClass $class,
+        Schedule $schedule
+    ) {
+        if ($schedule->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'subject_id' => [
+                'required',
+                'integer',
+                Rule::exists('subjects', 'id')
+                    ->where('class_id', $class->id),
+            ],
+
+            'teacher_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('class_members', 'user_id')
+                    ->where('class_id', $class->id)
+                    ->where('role', 'teacher')
+                    ->where('status', 'approved'),
+            ],
+
+            'day' => [
+                'required',
+                'in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+            ],
+
+            'start_time' => [
+                'required',
+                'date_format:H:i',
+            ],
+
+            'end_time' => [
+                'required',
+                'date_format:H:i',
+                'after:start_time',
+            ],
+
+            'room' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'notes' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+        ]);
+
+        $schedule->update([
+            'subject_id' => $validated['subject_id'],
+            'teacher_id' => $validated['teacher_id'] ?? null,
+            'day' => $validated['day'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'room' => $validated['room'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('schedules.index', $class)
+            ->with(
+                'success',
+                'Jadwal berhasil diperbarui.'
+            );
+    }
+
+    public function destroy(
+        SchoolClass $class,
+        Schedule $schedule
+    ) {
+        if ($schedule->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $schedule->delete();
+
+        return redirect()
+            ->route('schedules.index', $class)
+            ->with(
+                'success',
+                'Jadwal berhasil dihapus.'
             );
     }
 }

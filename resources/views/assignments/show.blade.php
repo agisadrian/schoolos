@@ -35,6 +35,58 @@
     </div>
 
 
+    @if(session('success'))
+
+        <div class="alert alert-success border-0 shadow-sm">
+            {{ session('success') }}
+        </div>
+
+    @endif
+
+
+    @if(
+        Auth::user()->role === 'admin' ||
+        Auth::user()->role === 'teacher'
+    )
+
+        <div class="d-flex justify-content-end gap-2 mb-3">
+
+            <a
+                href="{{ route(
+                    'assignments.edit',
+                    [$class, $assignment]
+                ) }}"
+                class="btn btn-outline-secondary btn-sm"
+            >
+                <i class="bi bi-pencil-square"></i>
+                Edit
+            </a>
+
+            <form
+                action="{{ route(
+                    'assignments.destroy',
+                    [$class, $assignment]
+                ) }}"
+                method="POST"
+                onsubmit="return confirm('Hapus tugas ini? Semua submission siswa untuk tugas ini juga akan ikut terhapus.')"
+            >
+                @csrf
+                @method('DELETE')
+
+                <button
+                    type="submit"
+                    class="btn btn-outline-danger btn-sm"
+                >
+                    <i class="bi bi-trash"></i>
+                    Hapus
+                </button>
+            </form>
+
+        </div>
+
+    @endif
+
+
     <!-- =========================
          ASSIGNMENT DETAIL
     ========================== -->

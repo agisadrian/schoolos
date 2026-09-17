@@ -250,4 +250,137 @@ class MaterialController extends Controller
             )
         );
     }
+
+
+    public function edit(
+        SchoolClass $class,
+        Material $material
+    ) {
+        if ($material->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $subjects = $class->subjects()
+            ->orderBy('name')
+            ->get();
+
+        return view(
+            'materials.edit',
+            compact(
+                'class',
+                'material',
+                'subjects'
+            )
+        );
+    }
+
+
+    public function update(
+        Request $request,
+        SchoolClass $class,
+        Material $material
+    ) {
+        if ($material->class_id !== $class->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'subject_id' => [
+                'required',
+                'integer',
+                'exists:subjects,id',
+            ],
+
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'nullable',
+                'string',
+                'max:10000',
+            ],
+
+            'file' => [
+                'nullable',
+                'file',
+                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip',
+                'max:10240',
+            ],
+        ]);
+
+        $subjectExists = $class->subjects()
+            ->where('id', $validated['subject_id'])
+            ->exists();
+
+        if (!$subjectExists) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'subject_id' =>
+                        'Mata pelajaran tidak berasal dari kelas ini.',
+                ]);
+        }
+
+        $updateData = [
+            'subject_id' => $validated['subject_id'],
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+        ];
+
+        // Kalau ada file baru diupload, ganti file lama.
+        if ($request->hasFile('file')) {
+            if ($material->file_path) {
+                Storage::disk('public')->delete(
+                    $material->file_path
+                );
+            }
+
+            $file = $request->file('file');
+
+            $updateData['file_path'] = $file->store(
+                'materials',
+                'public'
+            );
+            $updateData['file_name'] = $file->getClientOriginalName();
+            $updateData['file_type'] = $file->getClientMimeType();
+            $updateData['file_size'] = $file->getSize();
+        }
+
+        $material->update($updateData);
+
+        return redirect()
+            ->route('materials.show', [$class, $material])
+            ->with(
+                'success',
+                'Materi berhasil diperbarui.'
+            );
+    }
+
+
+    public function destroy(
+        SchoolClass $class,
+        Material $material
+    ) {
+        if ($material->class_id !== $class->id) {
+            abort(404);
+        }
+
+        if ($material->file_path) {
+            Storage::disk('public')->delete(
+                $material->file_path
+            );
+        }
+
+        $material->delete();
+
+        return redirect()
+            ->route('materials.index', $class)
+            ->with(
+                'success',
+                'Materi berhasil dihapus.'
+            );
+    }
 }

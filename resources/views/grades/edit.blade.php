@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Nilai - ' . $class->name)
+@section('title', 'Edit Nilai - ' . $class->name)
 
-@section('page-title', 'Tambah Nilai')
+@section('page-title', 'Edit Nilai')
 
 
 @section('content')
@@ -23,15 +23,27 @@
                 </div>
 
                 <h2 class="fw-bold mb-1">
-                    Tambah Nilai
+                    Edit Nilai
                 </h2>
 
                 <p class="text-muted mb-0">
-                    Masukkan nilai siswa untuk
-                    mata pelajaran tertentu.
+                    {{ $grade->student->name }}
                 </p>
 
             </div>
+
+
+            @if($errors->any())
+
+                <div class="alert alert-danger">
+
+                    @foreach($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                    @endforeach
+
+                </div>
+
+            @endif
 
 
             <!-- FORM -->
@@ -42,13 +54,38 @@
 
                     <form
                         action="{{ route(
-                            'grades.store',
-                            $class
+                            'grades.update',
+                            [$class, $grade]
                         ) }}"
                         method="POST"
                     >
 
                         @csrf
+                        @method('PUT')
+
+
+                        <!-- STUDENT (read-only info) -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+                                Siswa
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                value="{{ $grade->student->name }} · {{ $grade->student->email }}"
+                                disabled
+                            >
+
+                            <div class="form-text">
+                                Siswa tidak bisa diubah. Kalau
+                                salah siswa, hapus nilai ini
+                                lalu buat baru.
+                            </div>
+
+                        </div>
 
 
                         <!-- SUBJECT -->
@@ -69,16 +106,12 @@
                                 required
                             >
 
-                                <option value="">
-                                    Pilih Mata Pelajaran
-                                </option>
-
                                 @foreach($subjects as $subject)
 
                                     <option
                                         value="{{ $subject->id }}"
                                         {{
-                                            old('subject_id')
+                                            old('subject_id', $grade->subject_id)
                                                 == $subject->id
                                                 ? 'selected'
                                                 : ''
@@ -89,58 +122,6 @@
 
                                         @if($subject->code)
                                             ({{ $subject->code }})
-                                        @endif
-
-                                    </option>
-
-                                @endforeach
-
-                            </select>
-
-                        </div>
-
-
-                        <!-- STUDENT -->
-
-                        <div class="mb-4">
-
-                            <label
-                                for="student_id"
-                                class="form-label fw-semibold"
-                            >
-                                Siswa
-                            </label>
-
-                            <select
-                                name="student_id"
-                                id="student_id"
-                                class="form-select"
-                                required
-                            >
-
-                                <option value="">
-                                    Pilih Siswa
-                                </option>
-
-                                @foreach($students as $member)
-
-                                    <option
-                                        value="{{ $member->user->id }}"
-                                        {{
-                                            old('student_id')
-                                                == $member->user->id
-                                                ? 'selected'
-                                                : ''
-                                        }}
-                                    >
-
-                                        {{ $member->user->name }}
-
-                                        @if($member->user->email)
-
-                                            ·
-                                            {{ $member->user->email }}
-
                                         @endif
 
                                     </option>
@@ -168,8 +149,7 @@
                                 name="title"
                                 id="title"
                                 class="form-control"
-                                value="{{ old('title') }}"
-                                placeholder="Contoh: Ujian Tengah Semester"
+                                value="{{ old('title', $grade->title) }}"
                                 required
                             >
 
@@ -194,10 +174,9 @@
                                     name="score"
                                     id="score"
                                     class="form-control"
-                                    value="{{ old('score') }}"
+                                    value="{{ old('score', $grade->score) }}"
                                     min="0"
                                     step="0.01"
-                                    placeholder="Contoh: 85"
                                     required
                                 >
 
@@ -218,7 +197,7 @@
                                     name="max_score"
                                     id="max_score"
                                     class="form-control"
-                                    value="{{ old('max_score', 100) }}"
+                                    value="{{ old('max_score', $grade->max_score) }}"
                                     min="1"
                                     step="0.01"
                                     required
@@ -232,18 +211,11 @@
                         <!-- SCORE PREVIEW -->
 
                         <div
-                            class="alert
-                                   alert-light
-                                   border
-                                   mb-4"
+                            class="alert alert-light border mb-4"
                             id="scorePreview"
                         >
 
-                            <div
-                                class="d-flex
-                                       justify-content-between
-                                       align-items-center"
-                            >
+                            <div class="d-flex justify-content-between align-items-center">
 
                                 <span class="text-muted">
                                     Persentase Nilai
@@ -255,18 +227,12 @@
 
                             </div>
 
-
-                            <div
-                                class="progress mt-2"
-                                style="height: 8px;"
-                            >
-
+                            <div class="progress mt-2" style="height: 8px;">
                                 <div
                                     id="percentageBar"
                                     class="progress-bar"
                                     style="width: 0%;"
                                 ></div>
-
                             </div>
 
                         </div>
@@ -288,8 +254,7 @@
                                 id="notes"
                                 class="form-control"
                                 rows="4"
-                                placeholder="Catatan tambahan mengenai nilai..."
-                            >{{ old('notes') }}</textarea>
+                            >{{ old('notes', $grade->notes) }}</textarea>
 
                         </div>
 
@@ -306,8 +271,8 @@
 
                             <a
                                 href="{{ route(
-                                    'grades.index',
-                                    $class
+                                    'grades.show',
+                                    [$class, $grade]
                                 ) }}"
                                 class="btn btn-light border"
                             >
@@ -319,7 +284,7 @@
                                 type="submit"
                                 class="btn btn-primary"
                             >
-                                💾 Simpan Nilai
+                                <i class="bi bi-check-lg"></i> Simpan Perubahan
                             </button>
 
                         </div>
@@ -335,88 +300,35 @@
     </div>
 
 
-    <!-- SCORE CALCULATOR -->
-
     @push('scripts')
 
         <script>
 
-            const scoreInput =
-                document.getElementById('score');
-
-            const maxScoreInput =
-                document.getElementById('max_score');
-
-            const percentageText =
-                document.getElementById(
-                    'percentageText'
-                );
-
-            const percentageBar =
-                document.getElementById(
-                    'percentageBar'
-                );
-
+            const scoreInput = document.getElementById('score');
+            const maxScoreInput = document.getElementById('max_score');
+            const percentageText = document.getElementById('percentageText');
+            const percentageBar = document.getElementById('percentageBar');
 
             function updatePercentage()
             {
-                const score =
-                    parseFloat(
-                        scoreInput.value
-                    ) || 0;
+                const score = parseFloat(scoreInput.value) || 0;
+                const maxScore = parseFloat(maxScoreInput.value) || 0;
 
-                const maxScore =
-                    parseFloat(
-                        maxScoreInput.value
-                    ) || 0;
-
-
-                if (maxScore <= 0)
-                {
-                    percentageText.textContent =
-                        '0%';
-
-                    percentageBar.style.width =
-                        '0%';
-
+                if (maxScore <= 0) {
+                    percentageText.textContent = '0%';
+                    percentageBar.style.width = '0%';
                     return;
                 }
 
+                const percentage = (score / maxScore) * 100;
+                const safePercentage = Math.max(0, Math.min(percentage, 100));
 
-                const percentage =
-                    (score / maxScore) * 100;
-
-
-                const safePercentage =
-                    Math.max(
-                        0,
-                        Math.min(
-                            percentage,
-                            100
-                        )
-                    );
-
-
-                percentageText.textContent =
-                    safePercentage.toFixed(1) + '%';
-
-
-                percentageBar.style.width =
-                    safePercentage + '%';
+                percentageText.textContent = safePercentage.toFixed(1) + '%';
+                percentageBar.style.width = safePercentage + '%';
             }
 
-
-            scoreInput.addEventListener(
-                'input',
-                updatePercentage
-            );
-
-
-            maxScoreInput.addEventListener(
-                'input',
-                updatePercentage
-            );
-
+            scoreInput.addEventListener('input', updatePercentage);
+            maxScoreInput.addEventListener('input', updatePercentage);
 
             updatePercentage();
 

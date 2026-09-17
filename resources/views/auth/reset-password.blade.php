@@ -10,7 +10,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Login - SchoolOS Class</title>
+    <title>Reset Password - SchoolOS Class</title>
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -61,36 +61,18 @@
         <div class="text-center mb-4">
 
             <div class="logo">
-                <i class="bi bi-mortarboard-fill"></i>
+                <i class="bi bi-shield-lock-fill"></i>
             </div>
 
             <h2 class="fw-bold mt-2">
-                SchoolOS Class
+                Reset Password
             </h2>
 
             <p class="text-muted mb-0">
-                Masuk ke ruang kelas digital
+                Masukkan password baru untuk akun kamu.
             </p>
 
         </div>
-
-
-        @if(session('success'))
-
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-
-        @endif
-
-
-        @if(session('error'))
-
-            <div class="alert alert-danger">
-                {{ session('error') }}
-            </div>
-
-        @endif
 
 
         @if($errors->any())
@@ -111,12 +93,17 @@
 
 
         <form
-            action="{{ route('login.process') }}"
+            action="{{ route('password.update') }}"
             method="POST"
         >
 
             @csrf
 
+            <input
+                type="hidden"
+                name="token"
+                value="{{ $token }}"
+            >
 
             <div class="mb-3">
 
@@ -128,7 +115,7 @@
                     type="email"
                     name="email"
                     class="form-control form-control-lg"
-                    value="{{ old('email') }}"
+                    value="{{ old('email', $email) }}"
                     placeholder="nama@email.com"
                     required
                     autofocus
@@ -137,28 +124,34 @@
             </div>
 
 
-            <div class="mb-4">
+            <div class="mb-3">
 
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <label class="form-label fw-semibold mb-0">
-                        Password
-                    </label>
-
-                    <a
-                        href="{{ route('password.request') }}"
-                        class="small"
-                    >
-                        Lupa password?
-                    </a>
-
-                </div>
+                <label class="form-label fw-semibold">
+                    Password Baru
+                </label>
 
                 <input
                     type="password"
                     name="password"
-                    class="form-control form-control-lg mt-1"
-                    placeholder="Masukkan password"
+                    class="form-control form-control-lg"
+                    placeholder="Minimal 8 karakter"
+                    required
+                >
+
+            </div>
+
+
+            <div class="mb-4">
+
+                <label class="form-label fw-semibold">
+                    Konfirmasi Password Baru
+                </label>
+
+                <input
+                    type="password"
+                    name="password_confirmation"
+                    class="form-control form-control-lg"
+                    placeholder="Ulangi password baru"
                     required
                 >
 
@@ -169,7 +162,7 @@
                 type="submit"
                 class="btn btn-primary btn-lg w-100"
             >
-                Masuk
+                Reset Password
             </button>
 
         </form>
@@ -178,9 +171,9 @@
         <div class="text-center mt-4">
 
             <small class="text-muted">
-                Belum punya akun?
-                <a href="{{ route('register') }}">
-                    Daftar
+                <a href="{{ route('login') }}">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Kembali ke Login
                 </a>
             </small>
 

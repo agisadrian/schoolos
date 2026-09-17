@@ -979,6 +979,7 @@
 
 </script>
 
+@stack('scripts')
 
 </body>
 

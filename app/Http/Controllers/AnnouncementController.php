@@ -100,4 +100,88 @@ class AnnouncementController extends Controller
             )
         );
     }
+
+    public function edit(
+        SchoolClass $class,
+        Announcement $announcement
+    ) {
+        abort_unless(
+            $announcement->class_id === $class->id,
+            404
+        );
+
+        return view(
+            'announcements.edit',
+            compact(
+                'class',
+                'announcement'
+            )
+        );
+    }
+
+    public function update(
+        Request $request,
+        SchoolClass $class,
+        Announcement $announcement
+    ) {
+        abort_unless(
+            $announcement->class_id === $class->id,
+            404
+        );
+
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'content' => [
+                'required',
+                'string',
+            ],
+
+            'published_at' => [
+                'nullable',
+                'date',
+            ],
+        ]);
+
+        $announcement->update([
+            'title' => $validated['title'],
+            'content' => $validated['content'],
+            'published_at' =>
+                $validated['published_at']
+                ?? $announcement->published_at,
+        ]);
+
+        return redirect()
+            ->route(
+                'announcements.show',
+                [$class, $announcement]
+            )
+            ->with(
+                'success',
+                'Pengumuman berhasil diperbarui.'
+            );
+    }
+
+    public function destroy(
+        SchoolClass $class,
+        Announcement $announcement
+    ) {
+        abort_unless(
+            $announcement->class_id === $class->id,
+            404
+        );
+
+        $announcement->delete();
+
+        return redirect()
+            ->route('announcements.index', $class)
+            ->with(
+                'success',
+                'Pengumuman berhasil dihapus.'
+            );
+    }
 }

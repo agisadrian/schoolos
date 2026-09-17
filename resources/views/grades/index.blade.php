@@ -440,15 +440,49 @@
 
                                 <td class="text-end px-4">
 
-                                    <a
-                                        href="{{ route('grades.show', [
-                                            'class' => $class,
-                                            'grade' => $grade,
-                                        ]) }}"
-                                        class="btn btn-sm btn-light border"
-                                    >
-                                        <i class="bi bi-eye"></i>
-                                    </a>
+                                    <div class="d-flex justify-content-end gap-2">
+
+                                        <a
+                                            href="{{ route('grades.show', [
+                                                'class' => $class,
+                                                'grade' => $grade,
+                                            ]) }}"
+                                            class="btn btn-sm btn-light border"
+                                        >
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        @if(
+                                            Auth::user()->role === 'admin' ||
+                                            Auth::user()->role === 'teacher'
+                                        )
+
+                                            <a
+                                                href="{{ route('grades.edit', [$class, $grade]) }}"
+                                                class="btn btn-sm btn-outline-secondary"
+                                            >
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form
+                                                action="{{ route('grades.destroy', [$class, $grade]) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('Hapus nilai ini?')"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                >
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+
+                                        @endif
+
+                                    </div>
 
                                 </td>
 

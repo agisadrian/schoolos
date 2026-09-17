@@ -296,6 +296,37 @@
                                 <i class="bi bi-download"></i>
                             </a>
 
+
+                            @if(
+                                Auth::user()->role === 'admin' ||
+                                Auth::user()->role === 'teacher'
+                            )
+
+                                <a
+                                    href="{{ route('materials.edit', [$class, $material]) }}"
+                                    class="btn btn-outline-secondary"
+                                >
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                <form
+                                    action="{{ route('materials.destroy', [$class, $material]) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Hapus materi ini? File yang sudah diupload juga akan ikut terhapus.')"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-outline-danger"
+                                    >
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+
+                            @endif
+
                         </div>
 
                     </div>
